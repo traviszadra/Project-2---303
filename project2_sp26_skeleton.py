@@ -13,7 +13,7 @@ start = time.perf_counter() # Starting the timer
 plt.close('all')
 
 #%% Load wind data
-data = pd.read_csv("wind2.csv")
+data = pd.read_csv("wind2-1.csv")
 wind_mean = data[' Mean Wind SpeedMPH'].values
 wind_gust = data[' Max Gust SpeedMPH'].values
 wind_dir = data[' WindDirDegrees'].values
@@ -26,12 +26,14 @@ Ny = 20
 dt = 1/240
 Ndays = 365
 D = 10  # diffusion coefficient (mi²/day)
+Lx = Ly = 1
 
 lat = [45.5, 46.0]
 lon = [-111.6, -110.8]
 
-x = # fill in  
-y = # fill in  
+
+x = np.linspace(min(lat), max(lat), Nx) # setting intial x and y arrays for grid
+y = np.linspace(min(lon), max(lon), Ny)
 X, Y = np.meshgrid(x, y, indexing = 'ij')   # indexing through 'row, columns' like we set up matrices
 
 
@@ -49,21 +51,21 @@ def latlon2dist(lat1, lon1, lat2, lon2):
 miles_x = latlon2dist(np.mean(lat), lon[0], np.mean(lat), lon[1])
 miles_y = latlon2dist(lat[0], np.mean(lon), lat[1], np.mean(lon)) 
 
-dx = # fill in
-dy = # fill in
+dx = x[1] - x[0]
+dy = y[1] - y[0]
 
 #%% Model the emission source
 
-x0, y0 = -111.073837, 45.817315   # have students fill this in
+x0, y0 = 45.817315, -111.073837  # have students fill this in
 A = 3.3e4                           # peak ppb
 sigma = 0.01
 
 def source(x, y):
-    # fill in
+    return A * np.exp(-(((x - x0)**2 + (y - y0)**2) / (2*sigma**2)))
 
 # Compute the source field for the whole map
 
-S = # fill in
+S = source(X[1:-1,1:-1],Y[1:-1,1:-1])
 
 #%% Establish the map and place markers for Bozeman and Belgrade
 
@@ -151,39 +153,39 @@ for n in range(steps):
     
     
     # vectorized diffusion update, skipping the boundaries
-    lap = # fill in
+    lap = D * ((C[:-2, 1:-1] - 2*C[1:-1, 1:-1] + C[2:, 1:-1])/dx**2 + (C[1:-1, :-2] - 2*C[1:-1, 1:-1] + C[1:-1, 2:])/dy**2)
   
 
         #%%
     # Upwind advection in x. Use vectorization techniques.
     
     if u < 0:
-        xvel = # fill in   # forward diff
+        xvel = u * (C[2:, 1:-1] - C[1:-1, 1:-1]) / dx   # forward diff
    
         # if u < 0:
         #  xvelocity = (u / dx) * (C[i+1, j] - C[i, j])
         
     else:
-        xvel = # fill in # backward diff
+        xvel = u * (C[1:-1, 1:-1] - C[:-2, 1:-1]) / dx # backward diff
 
     # Upwind advection in y
     if v < 0:
-        yvel = # fill in   # forward diff
+        yvel = v * (C[1:-1, 2:] - C[1:-1, 1:-1]) / dy   # forward diff
     else:
-        yvel = # fill in  # backward diff
+        yvel = v * (C[1:-1, 1:-1] - C[1:-1, :-2]) / dy  # backward diff
 
     # Update interior
-    Cnew[1:-1, 1:-1] = # fill in
+    Cnew[1:-1, 1:-1] = C[1:-1, 1:-1] + dt*(-xvel -yvel + lap + S)
 
     # Apply zero-flux boundary conditions
-    Cnew[0, :]  = # fill in
-    Cnew[-1, :] = # fill in
-    Cnew[:, 0]  = # fill in
-    Cnew[:, -1] = # fill in
+    Cnew[0, :] = Cnew[1,:]
+    Cnew[-1, :] = Cnew[-2,:]
+    Cnew[:, 0] = Cnew[:,1]
+    Cnew[:, -1] = Cnew[:,-2]
 
     # Store previous state (as in your original code) and advance
-    Chistory[n] = # fill in
-    C = # fill in
+    Chistory[n] = C.copy()
+    C = C.copy()
     
     #%% plot an animation of the solution
 fig, ax = plt.subplots(figsize=(8, 6))
