@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Apr 13 14:52:35 2026
-
-@author: Leoooo
-"""
-
 
 #%% Imports
 import numpy as np
