@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 #%% Imports
 import numpy as np
@@ -65,7 +66,7 @@ def source(x, y):
 
 # Compute the source field for the whole map
 
-S = source(X[1:-1,1:-1],Y[1:-1,1:-1])
+S = source(X[:,:],Y[:,:])
 
 #%% Establish the map and place markers for Bozeman and Belgrade
 
@@ -124,7 +125,7 @@ steps = int(Ndays/dt)    # total number of steps for this simulation
 steps_per_day = int(1 / dt)  
 
 # initialize the concentration arrays
-C = np.zeros((Nx,Ny)) 
+C = np.zeros((Nx,Ny)) + S
 Cnew = C.copy()
 Chistory = np.zeros((steps, Nx, Ny)) # C_history stores the concentration info at each time step
 
