@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr 13 14:52:35 2026
+
+@author: Leoooo
+"""
+
 
 #%% Imports
 import numpy as np
@@ -32,8 +39,8 @@ lat = [45.5, 46.0]
 lon = [-111.6, -110.8]
 
 
-x = np.linspace(min(lat), max(lat), Nx) # setting intial x and y arrays for grid
-y = np.linspace(min(lon), max(lon), Ny)
+x = np.linspace(min(lon), max(lon), Nx) # setting intial x and y arrays for grid
+y = np.linspace(min(lat), max(lat), Ny)
 X, Y = np.meshgrid(x, y, indexing = 'ij')   # indexing through 'row, columns' like we set up matrices
 
 
@@ -56,7 +63,7 @@ dy = y[1] - y[0]
 
 #%% Model the emission source
 
-x0, y0 = 45.817315, -111.073837  # have students fill this in
+x0, y0 = -111.073837, 45.817315 # have students fill this in
 A = 3.3e4                           # peak ppb
 sigma = 0.01
 
@@ -65,7 +72,7 @@ def source(x, y):
 
 # Compute the source field for the whole map
 
-S = source(X[1:-1,1:-1],Y[1:-1,1:-1])
+S = source(X[:,:],Y[:,:])
 
 #%% Establish the map and place markers for Bozeman and Belgrade
 
@@ -124,9 +131,9 @@ steps = int(Ndays/dt)    # total number of steps for this simulation
 steps_per_day = int(1 / dt)  
 
 # initialize the concentration arrays
-C = np.zeros((Nx,Ny)) 
+C = np.zeros((Nx,Ny)) + S
 Cnew = C.copy()
-Chistory = np.zeros((steps, Nx,Ny)) # C_history stores the concentration info at each time step
+Chistory = np.zeros((steps, Nx, Ny)) # C_history stores the concentration info at each time step
 
 t = 0 # initial value for time
 
@@ -237,8 +244,6 @@ end = time.perf_counter() # Starting the timer
 time_elapsed = end-start
 
 print(f"the elapsed time is {time_elapsed:0.2f}")
-
-
 
 
 
