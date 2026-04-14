@@ -52,8 +52,8 @@ def latlon2dist(lat1, lon1, lat2, lon2):
 miles_x = latlon2dist(np.mean(lat), lon[0], np.mean(lat), lon[1])
 miles_y = latlon2dist(lat[0], np.mean(lon), lat[1], np.mean(lon)) 
 
-dx = x[1] - x[0]
-dy = y[1] - y[0]
+dx = miles_x / (Nx - 1) #x[1] - x[0]
+dy = miles_y / (Ny - 1) #y[1] - y[0]
 
 #%% Model the emission source
 
@@ -67,6 +67,7 @@ def source(x, y):
 # Compute the source field for the whole map
 
 S = source(X[:,:],Y[:,:])
+Sinterior = source(X[1:-1,1:-1],Y[1:-1,1:-1])
 
 #%% Establish the map and place markers for Bozeman and Belgrade
 
@@ -176,7 +177,7 @@ for n in range(steps):
         yvel = v * (C[1:-1, 1:-1] - C[1:-1, :-2]) / dy  # backward diff
 
     # Update interior
-    Cnew[1:-1, 1:-1] = C[1:-1, 1:-1] + dt*(-xvel -yvel + lap + S)
+    Cnew[1:-1, 1:-1] = C[1:-1, 1:-1] + dt*(-xvel - yvel + lap + Sinterior)
 
     # Apply zero-flux boundary conditions
     Cnew[0, :] = Cnew[1,:]
@@ -186,7 +187,7 @@ for n in range(steps):
 
     # Store previous state (as in your original code) and advance
     Chistory[n] = C.copy()
-    C = C.copy()
+    C = Cnew.copy()
     
     #%% plot an animation of the solution
 fig, ax = plt.subplots(figsize=(8, 6))
@@ -238,7 +239,6 @@ end = time.perf_counter() # Starting the timer
 time_elapsed = end-start
 
 print(f"the elapsed time is {time_elapsed:0.2f}")
-
 
 
 
