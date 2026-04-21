@@ -241,7 +241,102 @@ time_elapsed = end-start
 print(f"the elapsed time is {time_elapsed:0.2f}")
 
 
+#%% Check Criteria 1 and 2 for Gallatin Valley
 
+# Yearly average with wind
+valley_mean_wind = np.mean(Chistory)
+if valley_mean_wind > 53:
+    print('Assuming average wind, the yearly average NO2 emissions for the Gallatin Valley is not met.')
+    print(f"Average yearly NO2 emissions = {valley_mean_wind:0.2f} ppb")
+    
+else:
+    print('Assuming average wind, the yearly average NO2 emissions for the Gallatin Valley is met.')
+    print(f"Average yearly NO2 emissions = {valley_mean_wind:0.2f} ppb")
+
+# 98th percentile concentration yearly distribution
+
+steps_per_hour = steps_per_day // 24
+C_daily = Chistory[:steps].reshape(Ndays, steps_per_day, Nx, Ny) # all timesteps throughout the day
+C_dt = C_daily.reshape(Ndays, 24, steps_per_hour, Nx, Ny) # time is broken in to days, hours, and timesteps in the hour
+C_hourly = np.mean(C_dt, axis = 2) # mean concentration map for every hour
+C_hourly_mean = np.mean(C_hourly, axis = (2,3)) # average concentration over entire map for every hour
+C_daily_max = np.max(C_hourly_mean, axis=1) # max over 24 hours
+C_p98 = np.percentile(C_daily_max, 98, axis=0) # 98th percentile
+
+if C_p98 < 100:
+    print('The 98th percentile of max concentration is met.')
+    print(f"Concentration = {C_p98:0.2f} ppb")
+    
+else:
+    print('The 98th percentile of max concentration is not met.')
+    print(f"Concentration = {C_p98:0.2f} ppb")
+
+
+#%% Check Criteria 1 and 2 for Belgrade, Bozeman, and Four Corners (Hayden Analysis)
+
+## Belgrade
+# Criteria 1
+C_Bel = Chistory[:, 13, 10]
+C_Bel_mean = np.mean(C_Bel)
+
+print(f"Average yearly Belgrade NO2 emissions = {C_Bel_mean:0.2f} ppb")
+
+# Criteria 2
+C_Bel_hourly = C_hourly[:, :, 13, 10]
+C_Bel_daily_max = np.max(C_Bel_hourly, axis = 1)
+C_Bel_p98 = np.percentile(C_Bel_daily_max, 98, axis=0)
+
+print(f"Belgrade p98 concentration = {C_Bel_p98:0.2f} ppb")
+
+
+## Bozeman
+# Criteria 1
+C_Boz = Chistory[:, 17, 7]
+C_Boz_mean = np.mean(C_Boz)
+
+print(f"Average yearly Bozeman NO2 emissions = {C_Boz_mean:0.2f} ppb")
+
+# Criteria 2
+C_Boz_hourly = C_hourly[:, :, 17, 7]
+C_Boz_daily_max = np.max(C_Boz_hourly, axis = 1)
+C_Boz_p98 = np.percentile(C_Boz_daily_max, 98, axis=0)
+
+print(f"Bozeman p98 concentration = {C_Boz_p98:0.2f} ppb")
+
+
+## Four Corners
+# Criteria 1
+C_FC = Chistory[:, 13, 7]
+C_FC_mean = np.mean(C_FC)
+
+print(f"Average yearly Four Corners NO2 emissions = {C_Boz_mean:0.2f} ppb")
+
+# Criteria 2
+C_FC_hourly = C_hourly[:, :, 13, 7]
+C_FC_daily_max = np.max(C_FC_hourly, axis = 1)
+C_FC_p98 = np.percentile(C_FC_daily_max, 98, axis=0)
+
+print(f"Four Corners p98 concentration = {C_FC_p98:0.2f} ppb")
+
+
+# Graph Criteria
+cities = ['Bozeman', 'Belgrade', 'Four Corners']
+city_means = [C_Boz_mean, C_Bel_mean, C_FC_mean]
+city_p98 = [C_Boz_p98, C_Bel_p98, C_FC_p98]
+
+plt.figure(3)
+plt.bar(cities, city_means)
+plt.xlabel = ('Towns')
+plt.ylabel = ('Average NO2 Amount [ppb]')
+plt.title('Average NO2 Amounts in Densely Populated Areas')
+plt.show()
+
+plt.figure(4)
+plt.bar(cities, city_p98)
+plt.xlabel = ('Towns')
+plt.ylabel = ('98th Percentile Concentrations [ppb]')
+plt.title('1 Hour Daily Maximum NO2 Concentrations in Densely Populated Areas')
+plt.show()
 
 
 
