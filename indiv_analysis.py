@@ -133,6 +133,9 @@ def travisanalysis(Chistory, dt, lat, lon, S, plot_freq, x, y, wind_mean, wind_d
 #%% Check Criteria 1 and 2 for Belgrade, Bozeman, and Four Corners (Hayden Analysis)
 
 def haydenanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    
     # Yearly average with wind
     valley_mean_wind = np.mean(Chistory)
     if valley_mean_wind > 53:
