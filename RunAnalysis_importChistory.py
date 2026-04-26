@@ -24,13 +24,14 @@ wind_dir = data[' WindDirDegrees'].values
 
 # Grid setup
 
-rescale = 1
+rescale = 20
+rescale_time = 175
 
 Nx = 25 * rescale
 Ny = 20  * rescale
 #dt = 1/480  # days
 #dt = 0.0025
-dt = (1/240) / rescale**2
+dt = (1/240) / rescale_time
 Ndays = 365
 D = 10  # diffusion coefficient (mi²/day)
 
@@ -140,7 +141,9 @@ plot_freq = steps // (Ndays*5) # plot freq
 
 C = cp.zeros((Nx,Ny)) + cp.asarray(S)
 Cnew = C.copy()
-Chistory = np.zeros((steps // plot_freq, Nx, Ny), dtype=np.float32) # C_history stores the concentration info at each time step
+
+Chistory = np.load(r'C:\Users\travi\OneDrive - Montana State University\College Classes\2026 Semester 6\EMEC 303  CAEIII - Systems Analysis\Projects\Project 2\Chistory rescale20\Chistory.npy', mmap_mode='r')
+#Chistory = np.zeros((steps // plot_freq, Nx, Ny), dtype=np.float32) # C_history stores the concentration info at each time step
 
 t = 0 # initial value for time
 
@@ -167,7 +170,7 @@ colorbar = fig.colorbar(poll_img, ax=ax, label="Concentration (ppb)")
 
 # Update function for animation
 def update(frame):
-    t_day = frame * dt * plot_freq
+    t_day = frame / 24
     poll_img.set_data(Chistory[frame].T)
 
     # Interpolate wind info just like in main loop for the title
@@ -181,12 +184,17 @@ def update(frame):
     return [poll_img]
 
 # Only use every plot_freq-th frame
-frame_indices = list(range(len(Chistory)))
+frame_indices = list(range(1825))
+#frame_indices = list(range(0, len(Chistory), 10))
+
 
 ani = animation.FuncAnimation(
     fig, update, frames=frame_indices,
     interval=50, blit=False, repeat=False
 )
+
+ani.save('C:/Users/travi/OneDrive - Montana State University/College Classes/2026 Semester 6/EMEC 303  CAEIII - Systems Analysis/Projects/Project 2/upscaled_sim_animation.mp4', fps=30, dpi=100, bitrate = 2000)
+#ani.save('C:/Users/travi/OneDrive - Montana State University/College Classes/2026 Semester 6/EMEC 303  CAEIII - Systems Analysis/Projects/Project 2/upscaled_sim_animation_basefps.mp4', fps=30, dpi=100, bitrate = 2000)
 
 plt.show()
     
@@ -195,11 +203,14 @@ time_elapsed = end-start
 
 print(f"the elapsed time is {time_elapsed:0.2f}")
 
-#%% ability to pull across files
+#%% run individual analysis
+from indiv_analysis import travisanalysis, travisanalysis2, haydenanalysis
 
-travisanalysis(Chistory, dt, lat, lon, S, plot_freq, x, y, wind_mean, wind_dir)
+#travisanalysis(Chistory, dt, lat, lon, S, plot_freq, x, y, wind_mean, wind_dir)
 
-haydenanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays)
+#travisanalysis2(Chistory, dt, lat, lon, S, plot_freq, x, y, wind_mean, wind_dir)
+
+#haydenanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays,rescale)
 
 
 

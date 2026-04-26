@@ -21,7 +21,7 @@ wind_dir = data[' WindDirDegrees'].values
 
 #%% Grid setup
 
-rescale = 4
+rescale = 2
 
 Nx = 25 * rescale
 Ny = 20  * rescale
@@ -300,6 +300,8 @@ ani = animation.FuncAnimation(
     fig, update, frames=frame_indices,
     interval=50, blit=False, repeat=False
 )
+
+ani.save('C:/Users/aweso/OneDrive - Montana State University/College Classes/2026 Semester 6/EMEC 303  CAEIII - Systems Analysis/travis_comparison_animation.mp4', fps=30, dpi=100, bitrate = 2000)
 
 plt.show()
     

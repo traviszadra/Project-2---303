@@ -10,6 +10,8 @@ import math
 import time
 import matplotlib.animation as animation
 from matplotlib.ticker import FormatStrFormatter
+#from indiv_analysis import travisanalysis, haydenanalysis
+
 
 start = time.perf_counter() # Starting the timer
 plt.close('all')
@@ -22,13 +24,14 @@ wind_dir = data[' WindDirDegrees'].values
 
 #%% Grid setup
 
-rescale = 1
+rescale = 20
+rescale_time = 175
 
 Nx = 25 * rescale
 Ny = 20  * rescale
 #dt = 1/480  # days
 #dt = 0.0025
-dt = (1/240) / rescale**2
+dt = (1/240) / rescale_time
 Ndays = 365
 D = 10  # diffusion coefficient (mi²/day)
 
@@ -134,50 +137,56 @@ steps_per_day = int(1 / dt)
 
 # initialize the concentration arrays
 
-plot_freq = steps // (Ndays*5) # plot freq
+plot_freq = steps // (Ndays*24) # plot freq
 
 C = cp.zeros((Nx,Ny)) + cp.asarray(S)
 Cnew = C.copy()
-Chistory = np.zeros((steps // plot_freq, Nx, Ny), dtype=np.float32) # C_history stores the concentration info at each time step
+#Chistory = np.zeros((steps // plot_freq, Nx, Ny), dtype=np.float32) # C_history stores the concentration info at each time step
+
+n_snapshots = steps // plot_freq
+Chistory = np.lib.format.open_memmap(
+    r'C:\Users\travi\OneDrive - Montana State University\College Classes\2026 Semester 6\EMEC 303  CAEIII - Systems Analysis\Projects\Project 2\Chistory rescale20\Chistory.npy',
+    dtype=np.float32, mode='w+', shape=(n_snapshots, Nx, Ny))
 
 t = 0 # initial value for time
 
-#frac = np.zeros(steps)
-#time = np.linspace(0,steps,steps)
+frac = np.zeros(steps)
+timearr = np.linspace(0,steps,steps)
 
 #pre computed GPU arrays
-# n_arr        = np.arange(steps)
-# day_idx_arr  = n_arr // steps_per_day
-# frac_arr     = (n_arr % steps_per_day) / steps_per_day
+n_arr        = np.arange(steps)
+day_idx_arr  = n_arr // steps_per_day
+frac_arr     = (n_arr % steps_per_day) / steps_per_day
 
-# next_idx_arr = np.clip(day_idx_arr + 1, 0, 364)
+next_idx_arr = np.clip(day_idx_arr + 1, 0, 364)
 
-# wind_spd_arr = (1 - frac_arr) * wind_mean[day_idx_arr] + frac_arr * wind_mean[next_idx_arr]
-# wind_dir_arr = (1 - frac_arr) * wind_dir[day_idx_arr]  + frac_arr * wind_dir[next_idx_arr]
+wind_spd_arr = (1 - frac_arr) * wind_mean[day_idx_arr] + frac_arr * wind_mean[next_idx_arr]
+wind_dir_arr = (1 - frac_arr) * wind_dir[day_idx_arr]  + frac_arr * wind_dir[next_idx_arr]
 
-# u_arr = cp.asarray(-24 * wind_spd_arr * np.sin(np.radians(wind_dir_arr)))
-# v_arr = cp.asarray(-24 * wind_spd_arr * np.cos(np.radians(wind_dir_arr)))
+u_arr = cp.asarray(-24 * wind_spd_arr * np.sin(np.radians(wind_dir_arr)))
+v_arr = cp.asarray(-24 * wind_spd_arr * np.cos(np.radians(wind_dir_arr)))
 
 for n in range(steps):
-    t = t + dt  # in days
+    start1 = time.perf_counter()
+#     t = t + dt  # in days
   
-    day_idx = n // steps_per_day
-    frac    = (n % steps_per_day) / steps_per_day
+#     day_idx = n // steps_per_day
+#     frac    = (n % steps_per_day) / steps_per_day
        
-    if day_idx < 364:
-    #Wind interpolation
-        wind_spd_val = (1 - frac) * wind_mean[day_idx] + frac * wind_mean[day_idx +1]
-        wind_dir_val = (1 - frac) * wind_dir[day_idx] + frac * wind_dir[day_idx+1]
+#     if day_idx < 364:
+#     #Wind interpolation
+#         wind_spd_val = (1 - frac) * wind_mean[day_idx] + frac * wind_mean[day_idx +1]
+#         wind_dir_val = (1 - frac) * wind_dir[day_idx] + frac * wind_dir[day_idx+1]
         
-    else:
-        wind_spd_val = wind_mean[day_idx]
-        wind_dir_val = wind_dir[day_idx]
+#     else:
+#         wind_spd_val = wind_mean[day_idx]
+#         wind_dir_val = wind_dir[day_idx]
         
-    u = -24 * wind_spd_val * np.sin(np.radians(wind_dir_val))  # mi/day
-    v = -24 * wind_spd_val * np.cos(np.radians(wind_dir_val))  
+#     u = -24 * wind_spd_val * np.sin(np.radians(wind_dir_val))  # mi/day
+#     v = -24 * wind_spd_val * np.cos(np.radians(wind_dir_val))  
   
-    # u = u_arr[n]
-    # v = v_arr[n]
+    u = u_arr[n]
+    v = v_arr[n]
     
     # vectorized diffusion update, skipping the boundaries
     lap = D * ((C[:-2, 1:-1] - 2*C[1:-1, 1:-1] + C[2:, 1:-1])/dx**2 + (C[1:-1, :-2] - 2*C[1:-1, 1:-1] + C[1:-1, 2:])/dy**2)
@@ -186,32 +195,32 @@ for n in range(steps):
         #%%
     # Upwind advection in x. Use vectorization techniques.
     
-#     xvel = cp.where(
-#     u < 0,
-#     u * (C[2:, 1:-1] - C[1:-1, 1:-1]) / dx,   # forward diff
-#     u * (C[1:-1, 1:-1] - C[:-2, 1:-1]) / dx    # backward diff
-# )
-    if u < 0:
-        xvel = u * (C[2:, 1:-1] - C[1:-1, 1:-1]) / dx   # forward diff
+    xvel = cp.where(
+    u < 0,
+    u * (C[2:, 1:-1] - C[1:-1, 1:-1]) / dx,   # forward diff
+    u * (C[1:-1, 1:-1] - C[:-2, 1:-1]) / dx    # backward diff
+)
+    # if u < 0:
+    #     xvel = u * (C[2:, 1:-1] - C[1:-1, 1:-1]) / dx   # forward diff
         
-            # if u < 0:
-            #  xvelocity = (u / dx) * (C[i+1, j] - C[i, j])
+    #         # if u < 0:
+    #         #  xvelocity = (u / dx) * (C[i+1, j] - C[i, j])
             
-    else:
-        xvel = u * (C[1:-1, 1:-1] - C[:-2, 1:-1]) / dx # backward diff
+    # else:
+    #     xvel = u * (C[1:-1, 1:-1] - C[:-2, 1:-1]) / dx # backward diff
 
-#     # Upwind advection in y
-#     yvel = cp.where(
-#     v < 0,
-#     v * (C[1:-1, 2:] - C[1:-1, 1:-1]) / dy,     # forward diff
-#     v * (C[1:-1, 1:-1] - C[1:-1, :-2]) / dy      # backward diff
-# )
+    # Upwind advection in y
+    yvel = cp.where(
+    v < 0,
+    v * (C[1:-1, 2:] - C[1:-1, 1:-1]) / dy,     # forward diff
+    v * (C[1:-1, 1:-1] - C[1:-1, :-2]) / dy      # backward diff
+)
     
-    if v < 0:
-        yvel = v * (C[1:-1, 2:] - C[1:-1, 1:-1]) / dy   # forward diff
+    # if v < 0:
+    #     yvel = v * (C[1:-1, 2:] - C[1:-1, 1:-1]) / dy   # forward diff
         
-    else:
-        yvel = v * (C[1:-1, 1:-1] - C[1:-1, :-2]) / dy  # backward diff
+    # else:
+    #     yvel = v * (C[1:-1, 1:-1] - C[1:-1, :-2]) / dy  # backward diff
         
         
     # Update interior
@@ -231,7 +240,23 @@ for n in range(steps):
     
     progress = n/steps*100
     
-    print(f' We are {progress:0.4f}% done!')
+    end1 = time.perf_counter()
+    time_elapsed = end1-start1
+    
+    percentvel = (100/steps) / time_elapsed 
+    
+    if n % 100: 
+        print(f' We are {progress:0.4f}% done!')
+        
+        print(f' Currently doing {percentvel:0.4f}%/sec')
+        
+        percentremain = 100 - progress
+        timedone = percentremain/percentvel / 60
+        
+        print(f'Done in {timedone:0.4f} minutes')
+        
+        print(f'Were on step {n} of {steps}')
+    
     
 end = time.perf_counter() # Starting the timer
 time_elapsed = end-start
@@ -239,118 +264,6 @@ time_elapsed = end-start
 print(f"the elapsed time is {time_elapsed:0.2f}")
 
     
-    #%% plot an animation of the solution
-fig, ax = plt.subplots(figsize=(8, 6))
-
-# Show static map background
-img = ax.imshow(map_img, extent=extent, aspect='auto')
-
-# Show the pollution overlay
-poll_img = ax.imshow(
-    Chistory[0].T, extent=extent, origin='lower',
-    cmap='jet', vmin=0, vmax=200, alpha=0.6
-)
-
-# Title and labels
-title = ax.set_title("Animation of pollution across Gallatin Valley")
-ax.set_xlabel("Longitude")
-ax.set_ylabel("Latitude")
-
-# Create a colorbar
-colorbar = fig.colorbar(poll_img, ax=ax, label="Concentration (ppb)")
-
-# Update function for animation
-def update(frame):
-    t_day = frame * dt * plot_freq
-    poll_img.set_data(Chistory[frame].T)
-
-    # Interpolate wind info just like in main loop for the title
-    day_idx = min(int(np.floor(t_day)), len(wind_mean) - 2)
-    frac = t_day - int(np.floor(t_day))
-    w_spd = (1 - frac) * wind_mean[day_idx] + frac * wind_mean[day_idx + 1]
-    w_dir = (1 - frac) * wind_dir[day_idx] + frac * wind_dir[day_idx + 1]
-
-    title.set_text(f"Day = {t_day:.1f}, Wind = {w_spd:.2f} mph, {w_dir:.0f}°")
-
-    return [poll_img]
-
-# Only use every plot_freq-th frame
-frame_indices = list(range(len(Chistory)))
-
-ani = animation.FuncAnimation(
-    fig, update, frames=frame_indices,
-    interval=50, blit=False, repeat=False
-)
-
-plt.show()
-    
-end = time.perf_counter() # Starting the timer
-time_elapsed = end-start
-
-print(f"the elapsed time is {time_elapsed:0.2f}")
-
-#%% individual analysis Travis - comparing average houshold gas stove concentraction to concentraction see by plant.
-
-start_TA = time.perf_counter() # Starting the timer
-
-C_avghousehold = 6 #ppb
-C_maxhousehold = 128 #ppb
-
-#C_avgpertime = Chistory.copy()
-C_avgpertime = (Chistory - C_maxhousehold)/(C_maxhousehold)
-
-    # plot an animation of the solution
-fig, ax = plt.subplots(figsize=(8, 6))
-
-# Show static map background
-img = ax.imshow(map_img, extent=extent, aspect='auto')
-
-# Show the pollution overlay
-poll_img = ax.imshow(
-    C_avgpertime[0].T, extent=extent, origin='lower',
-    cmap='jet', vmin=0, vmax=2, alpha=0.6
-)
-
-# Title and labels
-title = ax.set_title("Animation of pollution difference from \n Gas Stove Max emission across Gallatin Valley")
-ax.set_xlabel("Longitude")
-ax.set_ylabel("Latitude")
-
-# Create a colorbar
-colorbar = fig.colorbar(poll_img, ax=ax, label="% Difference from Max Concentration")
-
-# Update function for animation
-def update(frame):
-    t_day = frame * dt * plot_freq
-    poll_img.set_data(C_avgpertime[frame].T)
-
-    # Interpolate wind info just like in main loop for the title
-    day_idx = min(int(np.floor(t_day)), len(wind_mean) - 2)
-    frac = t_day - int(np.floor(t_day))
-    w_spd = (1 - frac) * wind_mean[day_idx] + frac * wind_mean[day_idx + 1]
-    w_dir = (1 - frac) * wind_dir[day_idx] + frac * wind_dir[day_idx + 1]
-
-    title.set_text(f"Day = {t_day:.1f}, Wind = {w_spd:.2f} mph, {w_dir:.0f}°")
-
-    return [poll_img]
-
-# Only use every plot_freq-th frame
-frame_indices = list(range(len(Chistory)))
-
-ani = animation.FuncAnimation(
-    fig, update, frames=frame_indices,
-    interval=50, blit=False, repeat=False
-)
-
-plt.show()
-    
-end_TA = time.perf_counter() # Starting the timer
-time_elapsed_TA = end_TA-start_TA
-
-print(f"the elapsed time is {time_elapsed_TA:0.2f}")
-
-
-
 
 
 
