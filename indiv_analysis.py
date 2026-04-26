@@ -7,7 +7,7 @@ Created on Fri Apr 24 12:58:01 2026
 
 #%% individual analysis Travis - comparing average houshold gas stove concentraction to concentraction see by plant.
 
-def travisanalysis(Chistory, dt, lat, lon, S, plot_freq, x, y, wind_mean, wind_dir):
+def travisanalysis(Chistory, dt, lat, lon, S, plot_freq, x, y, wind_mean, wind_dir, n_snapshots):
     import numpy as np
     import cupy as cp
     import matplotlib.pyplot as plt
@@ -88,14 +88,14 @@ def travisanalysis(Chistory, dt, lat, lon, S, plot_freq, x, y, wind_mean, wind_d
         return [poll_img]
     
     # Only use every plot_freq-th frame
-    frame_indices = list(range(1825))
+    frame_indices = list(range(n_snapshots))
     
     ani = animation.FuncAnimation(
         fig, update, frames=frame_indices,
         interval=50, blit=False, repeat=False
     )
     
-    ani.save('C:/Users/travi/OneDrive - Montana State University/College Classes/2026 Semester 6/EMEC 303  CAEIII - Systems Analysis/Projects/Project 2/travis_comparison_animation.mp4', fps=30, dpi=100, bitrate = 2000)
+    ani.save('C:/Users/travi/OneDrive - Montana State University/College Classes/2026 Semester 6/EMEC 303  CAEIII - Systems Analysis/Projects/Project 2/travis_comparison_animation2.mp4', fps=30, dpi=100, bitrate = 2000)
     
     plt.show()
         
@@ -372,4 +372,272 @@ def haydenanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
 
 
 
-#%% carson analysis
+
+
+#%% Carson Analysis
+# Check worst days for each city, then shut off for worst days
+
+def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    
+    # Yearly average with wind
+    valley_mean_wind = np.mean(Chistory)
+    if valley_mean_wind > 53:
+        print('Assuming average wind, the yearly average NO2 emissions for the Gallatin Valley is not met.')
+        print(f"Average yearly NO2 emissions = {valley_mean_wind:0.2f} ppb")
+        
+    else:
+        print('Assuming average wind, the yearly average NO2 emissions for the Gallatin Valley is met.')
+        print(f"Average yearly NO2 emissions = {valley_mean_wind:0.2f} ppb")
+    
+    # 98th percentile concentration yearly distribution
+    
+    steps_per_day = 24
+    steps_per_hour = 1
+    C_daily = Chistory[:steps].reshape(Ndays, steps_per_day, Nx, Ny) # all timesteps throughout the day
+    C_dt = C_daily.reshape(Ndays, 24, steps_per_hour, Nx, Ny) # time is broken in to days, hours, and timesteps in the hour
+    C_hourly = np.mean(C_dt, axis = 2) # mean concentration map for every hour
+    C_hourly_mean = np.mean(C_hourly, axis = (2,3)) # average concentration over entire map for every hour
+    C_daily_max = np.max(C_hourly_mean, axis=1) # max over 24 hours
+    C_p98 = np.percentile(C_daily_max, 98, axis=0) # 98th percentile
+    
+    if C_p98 < 100:
+        print('The 98th percentile of max concentration is met.')
+        print(f"Concentration = {C_p98:0.2f} ppb")
+        
+    else:
+        print('The 98th percentile of max concentration is not met.')
+        print(f"Concentration = {C_p98:0.2f} ppb")
+    
+    
+    tol = rescale // 2  # use integer division to keep indices clean
+
+    ## Belgrade
+    xbel, ybel = 13*rescale, 10*rescale
+    
+    C_Bel = Chistory[:, xbel-tol:xbel+tol, ybel-tol:ybel+tol]
+    C_Bel_mean = np.mean(C_Bel)
+    print(f"Average yearly Belgrade NO2 emissions = {C_Bel_mean:0.2f} ppb")
+    
+    C_Bel_hourly = C_hourly[:, :, xbel-tol:xbel+tol, ybel-tol:ybel+tol]
+    C_Bel_daily_max = np.max(C_Bel_hourly, axis=1)
+    C_Bel_p98 = np.percentile(C_Bel_daily_max, 98)
+    print(f"Belgrade p98 concentration = {C_Bel_p98:0.2f} ppb")
+    
+    
+    ## Bozeman
+    xboz, yboz = 17*rescale, 7*rescale
+    
+    C_Boz = Chistory[:, xboz-tol:xboz+tol, yboz-tol:yboz+tol]
+    C_Boz_mean = np.mean(C_Boz)
+    print(f"Average yearly Bozeman NO2 emissions = {C_Boz_mean:0.2f} ppb")
+    
+    C_Boz_hourly = C_hourly[:, :, xboz-tol:xboz+tol, yboz-tol:yboz+tol]
+    C_Boz_daily_max = np.max(C_Boz_hourly, axis=1)
+    C_Boz_p98 = np.percentile(C_Boz_daily_max, 98)
+    print(f"Bozeman p98 concentration = {C_Boz_p98:0.2f} ppb")
+    
+    
+    ## Four Corners
+    xfc, yfc = 13*rescale, 7*rescale
+    
+    C_FC = Chistory[:, xfc-tol:xfc+tol, yfc-tol:yfc+tol]
+    C_FC_mean = np.mean(C_FC)
+    print(f"Average yearly Four Corners NO2 emissions = {C_FC_mean:0.2f} ppb")
+    
+    C_FC_hourly = C_hourly[:, :, xfc-tol:xfc+tol, yfc-tol:yfc+tol]
+    C_FC_daily_max = np.max(C_FC_hourly, axis=1)
+    C_FC_p98 = np.percentile(C_FC_daily_max, 98)
+    print(f"Four Corners p98 concentration = {C_FC_p98:0.2f} ppb")
+    
+    
+    ## Bridger
+    xbrid, ybrid = 20*rescale, 12*rescale
+    
+    C_Brid = Chistory[:, xbrid-tol:xbrid+tol, ybrid-tol:ybrid+tol]
+    C_Brid_mean = np.mean(C_Brid)
+    print(f"Average yearly Bridger NO2 emissions = {C_Brid_mean:0.2f} ppb")
+    
+    C_Brid_hourly = C_hourly[:, :, xbrid-tol:xbrid+tol, ybrid-tol:ybrid+tol]
+    C_Brid_daily_max = np.max(C_Brid_hourly, axis=1)
+    C_Brid_p98 = np.percentile(C_Brid_daily_max, 98)
+    print(f"Bridger p98 concentration = {C_Brid_p98:0.2f} ppb")
+    
+    
+    # Graph Criteria
+    cities = ['Bozeman', 'Belgrade', 'Four Corners', 'Bridger Bowl']
+    city_means = [C_Boz_mean, C_Bel_mean, C_FC_mean, C_Brid_mean]
+    city_p98 = [C_Boz_p98, C_Bel_p98, C_FC_p98, C_Brid_p98]
+    
+    #carson analysis
+    
+    top_days = 10
+    
+    # Belgrade worst days
+    Bel10 = []
+    Bel_sorted = np.argsort(-C_Bel_daily_max)
+    Bel_idx = Bel_sorted[:top_days]
+    print(f'The {top_days} worst days in Belgrade are:')
+    for day in Bel_idx:
+        Bel10.append((day, C_Bel_daily_max[day]))
+        print(f'Day {day}: {C_Bel_daily_max[day]:0.2f}')
+    
+    # Bozeman worst days
+    Boz10 = []
+    Boz_sorted = np.argsort(-C_Boz_daily_max)
+    Boz_idx = Boz_sorted[:top_days]
+    print(f'The {top_days} worst days in Bozeman are:')
+    for day in Boz_idx:
+        Boz10.append((day, C_Boz_daily_max[day])) 
+        print(f'Day {day}: {C_Boz_daily_max[day]:0.2f}')
+    
+    # Four Corners worst days
+    FC10 = []
+    FC_sorted = np.argsort(-C_FC_daily_max)
+    FC_idx = FC_sorted[:top_days]
+    print(f'The {top_days} worst days in Four Corners are:')
+    for day in FC_idx:
+        FC10.append((day, C_FC_daily_max[day])) 
+        print(f'Day {day}: {C_FC_daily_max[day]:0.2f}')
+    
+    # Bridger worst days
+    C_daily_mod = Chistory.reshape(Ndays, steps_per_day, Nx, Ny).copy()
+    C_daily_mod[80:346, :, 20, 12] = 0
+    for d in range(Ndays):
+        if d % 7 not in [5,6]:
+            C_daily_mod[d, :, 20, 12] = 0
+    C_dt_mod = C_daily_mod.reshape(Ndays, 24, steps_per_hour, Nx, Ny)
+    C_hourly_mod = np.mean(C_dt_mod, axis=2)
+    C_Brid_hourly = C_hourly_mod[:, :, 20, 12]
+    C_Brid_daily_max_mod = np.max(C_hourly_mod[:, :, 20, 12], axis=1)
+    Brid10 = []
+    Brid_sorted = np.argsort(-C_Brid_daily_max_mod)
+    Brid_idx = Brid_sorted[:10]
+    print(f'The {top_days} worst days in Bridger are:')
+    for day in Brid_idx:
+        Brid10.append((day, C_Brid_daily_max_mod[day])) 
+        print(f'Day {day}: {C_Brid_daily_max_mod[day]:0.2f}')
+    
+    # Overall worst days
+    overall_worst = Bel10 + Boz10 + FC10 + Brid10
+    # make into array to use argsort
+    overall_days = np.array([i[0] for i in overall_worst])
+    overall_values = np.array([i[1] for i in overall_worst])
+    
+    overall10 = []
+    overallsort = np.argsort(-overall_values)
+    overallidx = overallsort[:top_days]
+    print(f'The overall {top_days} worst days are:')
+    for i in overallidx:
+        overall10.append((overall_days[i], overall_values[i]))
+        print(f'Day {overall_days[i]}: {overall_values[i]:0.2f} ')
+        
+        
+    # Yearly average with wind
+    valley_mean_wind = np.mean(Chistory)
+    if valley_mean_wind > 53:
+        print('Assuming average wind, the yearly average NO2 emissions for the Gallatin Valley is not met.')
+        print(f"Average yearly NO2 emissions = {valley_mean_wind:0.2f} ppb")
+        
+    else:
+        print('Assuming average wind, the yearly average NO2 emissions for the Gallatin Valley is met.')
+        print(f"Average yearly NO2 emissions = {valley_mean_wind:0.2f} ppb")
+    
+    # 98th percentile concentration yearly distribution
+    
+    steps_per_day = 24
+    steps_per_hour = 1
+    C_daily = Chistory[:steps].reshape(Ndays, steps_per_day, Nx, Ny) # all timesteps throughout the day
+    C_dt = C_daily.reshape(Ndays, 24, steps_per_hour, Nx, Ny) # time is broken in to days, hours, and timesteps in the hour
+    C_hourly = np.mean(C_dt, axis = 2) # mean concentration map for every hour
+    C_hourly_mean = np.mean(C_hourly, axis = (2,3)) # average concentration over entire map for every hour
+    C_daily_max = np.max(C_hourly_mean, axis=1) # max over 24 hours
+    C_p98 = np.percentile(C_daily_max, 98, axis=0) # 98th percentile
+    
+    if C_p98 < 100:
+        print('The 98th percentile of max concentration is met.')
+        print(f"Concentration = {C_p98:0.2f} ppb")
+        
+    else:
+        print('The 98th percentile of max concentration is not met.')
+        print(f"Concentration = {C_p98:0.2f} ppb")
+    
+    
+    tol = rescale // 2  # use integer division to keep indices clean
+
+    ## Belgrade
+    xbel, ybel = 13*rescale, 10*rescale
+    
+    C_Bel_new = Chistory[:, xbel-tol:xbel+tol, ybel-tol:ybel+tol]
+    C_Bel_mean_new = np.mean(C_Bel_new)
+    print(f"Average yearly Belgrade NO2 emissions = {C_Bel_mean:0.2f} ppb")
+    
+    C_Bel_hourly_new = C_hourly[:, :, xbel-tol:xbel+tol, ybel-tol:ybel+tol]
+    C_Bel_daily_max_new = np.max(C_Bel_hourly_new, axis=1)
+    C_Bel_p98_new = np.percentile(C_Bel_daily_max_new, 98)
+    print(f"Belgrade p98 concentration = {C_Bel_p98:0.2f} ppb")
+    
+    
+    ## Bozeman
+    xboz, yboz = 17*rescale, 7*rescale
+    
+    C_Boz_new = Chistory[:, xboz-tol:xboz+tol, yboz-tol:yboz+tol]
+    C_Boz_mean_new = np.mean(C_Boz_new)
+    print(f"Average yearly Bozeman NO2 emissions = {C_Boz_mean:0.2f} ppb")
+    
+    C_Boz_hourly_new = C_hourly[:, :, xboz-tol:xboz+tol, yboz-tol:yboz+tol]
+    C_Boz_daily_max_new = np.max(C_Boz_hourly_new, axis=1)
+    C_Boz_p98_new = np.percentile(C_Boz_daily_max_new, 98)
+    print(f"Bozeman p98 concentration = {C_Boz_p98:0.2f} ppb")
+    
+    
+    ## Four Corners
+    xfc, yfc = 13*rescale, 7*rescale
+    
+    C_FC_new = Chistory[:, xfc-tol:xfc+tol, yfc-tol:yfc+tol]
+    C_FC_mean_new = np.mean(C_FC_new)
+    print(f"Average yearly Four Corners NO2 emissions = {C_FC_mean:0.2f} ppb")
+    
+    C_FC_hourly_new = C_hourly[:, :, xfc-tol:xfc+tol, yfc-tol:yfc+tol]
+    C_FC_daily_max_new = np.max(C_FC_hourly_new, axis=1)
+    C_FC_p98_new = np.percentile(C_FC_daily_max_new, 98)
+    print(f"Four Corners p98 concentration = {C_FC_p98:0.2f} ppb")
+    
+    
+    ## Bridger
+    xbrid, ybrid = 20*rescale, 12*rescale
+    
+    C_Brid_new = Chistory[:, xbrid-tol:xbrid+tol, ybrid-tol:ybrid+tol]
+    C_Brid_mean_new = np.mean(C_Brid_new)
+    print(f"Average yearly Bridger NO2 emissions = {C_Brid_mean:0.2f} ppb")
+    
+    C_Brid_hourly_new = C_hourly[:, :, xbrid-tol:xbrid+tol, ybrid-tol:ybrid+tol]
+    C_Brid_daily_max_new = np.max(C_Brid_hourly_new, axis=1)
+    C_Brid_p98_new = np.percentile(C_Brid_daily_max_new, 98)
+    print(f"Bridger p98 concentration = {C_Brid_p98:0.2f} ppb")
+    
+    
+    # Graph Criteria
+    cities = ['Bozeman', 'Belgrade', 'Four Corners', 'Bridger Bowl']
+    city_means_new = [C_Boz_mean_new, C_Bel_mean_new, C_FC_mean_new, C_Brid_mean_new]
+    city_p98_new = [C_Boz_p98_new, C_Bel_p98_new, C_FC_p98_new, C_Brid_p98_new]
+    
+    plt.figure(5)
+    plt.bar(cities, city_means_new)
+    plt.axhline(y = 53, color = 'red', label = 'Limit (53 ppb)')
+    plt.xlabel('Areas')
+    plt.ylabel('Average NO2 Amount [ppb]')
+    plt.title('Average NO2 Amounts in Populated/Popular Areas')
+    plt.legend()
+    plt.show()
+    
+    plt.figure(6)
+    plt.bar(cities, city_p98_new)
+    plt.axhline(y = 100, color = 'red', label = 'Limit (100 ppb)')
+    plt.xlabel('Areas')
+    plt.ylabel('98th Percentile Concentrations [ppb]')
+    plt.title('1 Hour Daily Maximum NO2 Concentrations in Populated/Popular Areas')
+    plt.legend()
+    plt.show()
+    return
