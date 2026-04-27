@@ -299,7 +299,7 @@ def haydenanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     print(f"Average yearly Belgrade NO2 emissions = {C_Bel_mean:0.2f} ppb")
     
     C_Bel_hourly = C_hourly[:, :, xbel-tol:xbel+tol, ybel-tol:ybel+tol]
-    C_Bel_daily_max = np.max(C_Bel_hourly, axis=1)
+    C_Bel_daily_max = np.max(C_Bel_hourly, axis=(1,2,3))
     C_Bel_p98 = np.percentile(C_Bel_daily_max, 98)
     print(f"Belgrade p98 concentration = {C_Bel_p98:0.2f} ppb")
     
@@ -312,7 +312,7 @@ def haydenanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     print(f"Average yearly Bozeman NO2 emissions = {C_Boz_mean:0.2f} ppb")
     
     C_Boz_hourly = C_hourly[:, :, xboz-tol:xboz+tol, yboz-tol:yboz+tol]
-    C_Boz_daily_max = np.max(C_Boz_hourly, axis=1)
+    C_Boz_daily_max = np.max(C_Boz_hourly, axis=(1,2,3))
     C_Boz_p98 = np.percentile(C_Boz_daily_max, 98)
     print(f"Bozeman p98 concentration = {C_Boz_p98:0.2f} ppb")
     
@@ -325,7 +325,7 @@ def haydenanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     print(f"Average yearly Four Corners NO2 emissions = {C_FC_mean:0.2f} ppb")
     
     C_FC_hourly = C_hourly[:, :, xfc-tol:xfc+tol, yfc-tol:yfc+tol]
-    C_FC_daily_max = np.max(C_FC_hourly, axis=1)
+    C_FC_daily_max = np.max(C_FC_hourly, axis=(1,2,3))
     C_FC_p98 = np.percentile(C_FC_daily_max, 98)
     print(f"Four Corners p98 concentration = {C_FC_p98:0.2f} ppb")
     
@@ -338,7 +338,7 @@ def haydenanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     print(f"Average yearly Bridger NO2 emissions = {C_Brid_mean:0.2f} ppb")
     
     C_Brid_hourly = C_hourly[:, :, xbrid-tol:xbrid+tol, ybrid-tol:ybrid+tol]
-    C_Brid_daily_max = np.max(C_Brid_hourly, axis=1)
+    C_Brid_daily_max = np.max(C_Brid_hourly, axis=(1,2,3))
     C_Brid_p98 = np.percentile(C_Brid_daily_max, 98)
     print(f"Bridger p98 concentration = {C_Brid_p98:0.2f} ppb")
     
@@ -395,6 +395,8 @@ def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     
     steps_per_day = 24
     steps_per_hour = 1
+    steps = 8760
+    
     C_daily = Chistory[:steps].reshape(Ndays, steps_per_day, Nx, Ny) # all timesteps throughout the day
     C_dt = C_daily.reshape(Ndays, 24, steps_per_hour, Nx, Ny) # time is broken in to days, hours, and timesteps in the hour
     C_hourly = np.mean(C_dt, axis = 2) # mean concentration map for every hour
@@ -421,7 +423,7 @@ def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     print(f"Average yearly Belgrade NO2 emissions = {C_Bel_mean:0.2f} ppb")
     
     C_Bel_hourly = C_hourly[:, :, xbel-tol:xbel+tol, ybel-tol:ybel+tol]
-    C_Bel_daily_max = np.max(C_Bel_hourly, axis=1)
+    C_Bel_daily_max = np.max(C_Bel_hourly, axis=(1,2,3))
     C_Bel_p98 = np.percentile(C_Bel_daily_max, 98)
     print(f"Belgrade p98 concentration = {C_Bel_p98:0.2f} ppb")
     
@@ -434,7 +436,7 @@ def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     print(f"Average yearly Bozeman NO2 emissions = {C_Boz_mean:0.2f} ppb")
     
     C_Boz_hourly = C_hourly[:, :, xboz-tol:xboz+tol, yboz-tol:yboz+tol]
-    C_Boz_daily_max = np.max(C_Boz_hourly, axis=1)
+    C_Boz_daily_max = np.max(C_Boz_hourly, axis=(1,2,3))
     C_Boz_p98 = np.percentile(C_Boz_daily_max, 98)
     print(f"Bozeman p98 concentration = {C_Boz_p98:0.2f} ppb")
     
@@ -447,7 +449,7 @@ def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     print(f"Average yearly Four Corners NO2 emissions = {C_FC_mean:0.2f} ppb")
     
     C_FC_hourly = C_hourly[:, :, xfc-tol:xfc+tol, yfc-tol:yfc+tol]
-    C_FC_daily_max = np.max(C_FC_hourly, axis=1)
+    C_FC_daily_max = np.max(C_FC_hourly, axis=(1,2,3))
     C_FC_p98 = np.percentile(C_FC_daily_max, 98)
     print(f"Four Corners p98 concentration = {C_FC_p98:0.2f} ppb")
     
@@ -460,15 +462,10 @@ def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     print(f"Average yearly Bridger NO2 emissions = {C_Brid_mean:0.2f} ppb")
     
     C_Brid_hourly = C_hourly[:, :, xbrid-tol:xbrid+tol, ybrid-tol:ybrid+tol]
-    C_Brid_daily_max = np.max(C_Brid_hourly, axis=1)
+    C_Brid_daily_max = np.max(C_Brid_hourly, axis=(1,2,3))
     C_Brid_p98 = np.percentile(C_Brid_daily_max, 98)
     print(f"Bridger p98 concentration = {C_Brid_p98:0.2f} ppb")
     
-    
-    # Graph Criteria
-    cities = ['Bozeman', 'Belgrade', 'Four Corners', 'Bridger Bowl']
-    city_means = [C_Boz_mean, C_Bel_mean, C_FC_mean, C_Brid_mean]
-    city_p98 = [C_Boz_p98, C_Bel_p98, C_FC_p98, C_Brid_p98]
     
     #carson analysis
     
@@ -503,14 +500,16 @@ def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     
     # Bridger worst days
     C_daily_mod = Chistory.reshape(Ndays, steps_per_day, Nx, Ny).copy()
-    C_daily_mod[80:346, :, 20, 12] = 0
+    C_daily_mod[80:346, :, xbrid, ybrid] = 0
+    
     for d in range(Ndays):
         if d % 7 not in [5,6]:
-            C_daily_mod[d, :, 20, 12] = 0
+            C_daily_mod[d, :, xbrid, ybrid] = 0
+            
     C_dt_mod = C_daily_mod.reshape(Ndays, 24, steps_per_hour, Nx, Ny)
     C_hourly_mod = np.mean(C_dt_mod, axis=2)
-    C_Brid_hourly = C_hourly_mod[:, :, 20, 12]
-    C_Brid_daily_max_mod = np.max(C_hourly_mod[:, :, 20, 12], axis=1)
+    C_Brid_hourly = C_hourly_mod[:, :, xbrid, ybrid]
+    C_Brid_daily_max_mod = np.max(C_hourly_mod[:, :, xbrid, ybrid], axis=1)
     Brid10 = []
     Brid_sorted = np.argsort(-C_Brid_daily_max_mod)
     Brid_idx = Brid_sorted[:10]
@@ -548,12 +547,24 @@ def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     
     steps_per_day = 24
     steps_per_hour = 1
-    C_daily = Chistory[:steps].reshape(Ndays, steps_per_day, Nx, Ny) # all timesteps throughout the day
-    C_dt = C_daily.reshape(Ndays, 24, steps_per_hour, Nx, Ny) # time is broken in to days, hours, and timesteps in the hour
-    C_hourly = np.mean(C_dt, axis = 2) # mean concentration map for every hour
-    C_hourly_mean = np.mean(C_hourly, axis = (2,3)) # average concentration over entire map for every hour
-    C_daily_max = np.max(C_hourly_mean, axis=1) # max over 24 hours
-    C_p98 = np.percentile(C_daily_max, 98, axis=0) # 98th percentile
+    steps = 8760
+    
+    C_daily_new = Chistory[:steps].reshape(Ndays, steps_per_day, Nx, Ny) # all timesteps throughout the day
+    C_daily_new = C_daily_new.copy() 
+    shutdown = [13, 19, 34, 40, 41, 349, 355, 356, 362, 363] #[40, 129, 269, 270, 316, 317, 349, 355, 356, 363]
+    C_daily_new[shutdown, :, :, :] = 0
+    C_daily_new[80:346, :, xbrid, ybrid] = 0
+    
+    for d in range(Ndays):
+        if d % 7 not in [5,6]:
+            C_daily_new[d, :, xbrid, ybrid] = 0
+            
+    C_dt_new = C_daily_new.reshape(Ndays, 24, steps_per_hour, Nx, Ny) # time is broken in to days, hours, and timesteps in the hour
+    C_hourly_new = np.mean(C_dt_new, axis = 2) # mean concentration map for every hour
+    C_hourly_mean_new = np.mean(C_hourly_new, axis = (2,3)) # average concentration over entire map for every hour
+    C_daily_max_new = np.max(C_hourly_mean_new, axis=1) # max over 24 hours
+    C_p98_new = np.percentile(C_daily_max_new, 98, axis=0) # 98th percentile
+    Chistory_new = C_daily_new.reshape(steps, Nx, Ny)
     
     if C_p98 < 100:
         print('The 98th percentile of max concentration is met.')
@@ -569,53 +580,53 @@ def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     ## Belgrade
     xbel, ybel = 13*rescale, 10*rescale
     
-    C_Bel_new = Chistory[:, xbel-tol:xbel+tol, ybel-tol:ybel+tol]
+    C_Bel_new = Chistory_new[:, xbel-tol:xbel+tol, ybel-tol:ybel+tol]
     C_Bel_mean_new = np.mean(C_Bel_new)
-    print(f"Average yearly Belgrade NO2 emissions = {C_Bel_mean:0.2f} ppb")
+    print(f"Average yearly Belgrade NO2 emissions = {C_Bel_mean_new:0.2f} ppb")
     
-    C_Bel_hourly_new = C_hourly[:, :, xbel-tol:xbel+tol, ybel-tol:ybel+tol]
+    C_Bel_hourly_new = C_hourly_new[:, :, xbel-tol:xbel+tol, ybel-tol:ybel+tol]
     C_Bel_daily_max_new = np.max(C_Bel_hourly_new, axis=1)
     C_Bel_p98_new = np.percentile(C_Bel_daily_max_new, 98)
-    print(f"Belgrade p98 concentration = {C_Bel_p98:0.2f} ppb")
+    print(f"Belgrade p98 concentration = {C_Bel_p98_new:0.2f} ppb")
     
     
     ## Bozeman
     xboz, yboz = 17*rescale, 7*rescale
     
-    C_Boz_new = Chistory[:, xboz-tol:xboz+tol, yboz-tol:yboz+tol]
+    C_Boz_new = Chistory_new[:, xboz-tol:xboz+tol, yboz-tol:yboz+tol]
     C_Boz_mean_new = np.mean(C_Boz_new)
-    print(f"Average yearly Bozeman NO2 emissions = {C_Boz_mean:0.2f} ppb")
+    print(f"Average yearly Bozeman NO2 emissions = {C_Boz_mean_new:0.2f} ppb")
     
-    C_Boz_hourly_new = C_hourly[:, :, xboz-tol:xboz+tol, yboz-tol:yboz+tol]
+    C_Boz_hourly_new = C_hourly_new[:, :, xboz-tol:xboz+tol, yboz-tol:yboz+tol]
     C_Boz_daily_max_new = np.max(C_Boz_hourly_new, axis=1)
     C_Boz_p98_new = np.percentile(C_Boz_daily_max_new, 98)
-    print(f"Bozeman p98 concentration = {C_Boz_p98:0.2f} ppb")
+    print(f"Bozeman p98 concentration = {C_Boz_p98_new:0.2f} ppb")
     
     
     ## Four Corners
     xfc, yfc = 13*rescale, 7*rescale
     
-    C_FC_new = Chistory[:, xfc-tol:xfc+tol, yfc-tol:yfc+tol]
+    C_FC_new = Chistory_new[:, xfc-tol:xfc+tol, yfc-tol:yfc+tol]
     C_FC_mean_new = np.mean(C_FC_new)
-    print(f"Average yearly Four Corners NO2 emissions = {C_FC_mean:0.2f} ppb")
+    print(f"Average yearly Four Corners NO2 emissions = {C_FC_mean_new:0.2f} ppb")
     
-    C_FC_hourly_new = C_hourly[:, :, xfc-tol:xfc+tol, yfc-tol:yfc+tol]
+    C_FC_hourly_new = C_hourly_new[:, :, xfc-tol:xfc+tol, yfc-tol:yfc+tol]
     C_FC_daily_max_new = np.max(C_FC_hourly_new, axis=1)
     C_FC_p98_new = np.percentile(C_FC_daily_max_new, 98)
-    print(f"Four Corners p98 concentration = {C_FC_p98:0.2f} ppb")
+    print(f"Four Corners p98 concentration = {C_FC_p98_new:0.2f} ppb")
     
     
     ## Bridger
     xbrid, ybrid = 20*rescale, 12*rescale
     
-    C_Brid_new = Chistory[:, xbrid-tol:xbrid+tol, ybrid-tol:ybrid+tol]
+    C_Brid_new = Chistory_new[:, xbrid-tol:xbrid+tol, ybrid-tol:ybrid+tol]
     C_Brid_mean_new = np.mean(C_Brid_new)
-    print(f"Average yearly Bridger NO2 emissions = {C_Brid_mean:0.2f} ppb")
+    print(f"Average yearly Bridger NO2 emissions = {C_Brid_mean_new:0.2f} ppb")
     
-    C_Brid_hourly_new = C_hourly[:, :, xbrid-tol:xbrid+tol, ybrid-tol:ybrid+tol]
+    C_Brid_hourly_new = C_hourly_new[:, :, xbrid-tol:xbrid+tol, ybrid-tol:ybrid+tol]
     C_Brid_daily_max_new = np.max(C_Brid_hourly_new, axis=1)
     C_Brid_p98_new = np.percentile(C_Brid_daily_max_new, 98)
-    print(f"Bridger p98 concentration = {C_Brid_p98:0.2f} ppb")
+    print(f"Bridger p98 concentration = {C_Brid_p98_new:0.2f} ppb")
     
     
     # Graph Criteria
@@ -628,7 +639,7 @@ def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     plt.axhline(y = 53, color = 'red', label = 'Limit (53 ppb)')
     plt.xlabel('Areas')
     plt.ylabel('Average NO2 Amount [ppb]')
-    plt.title('Average NO2 Amounts in Populated/Popular Areas')
+    plt.title('Average NO2 Amounts in Populated/Popular Areas After Shutdown')
     plt.legend()
     plt.show()
     
@@ -637,7 +648,7 @@ def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     plt.axhline(y = 100, color = 'red', label = 'Limit (100 ppb)')
     plt.xlabel('Areas')
     plt.ylabel('98th Percentile Concentrations [ppb]')
-    plt.title('1 Hour Daily Maximum NO2 Concentrations in Populated/Popular Areas')
+    plt.title('1 Hour Daily Maximum NO2 Concentrations in Populated/Popular Areas After Shutdown')
     plt.legend()
     plt.show()
     return

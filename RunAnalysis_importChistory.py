@@ -151,70 +151,73 @@ t = 0 # initial value for time
 
 
     #%% plot an animation of the solution
-fig, ax = plt.subplots(figsize=(8, 6))
-
-# Show static map background
-img = ax.imshow(map_img, extent=extent, aspect='auto')
-
-# Show the pollution overlay
-poll_img = ax.imshow(
-    Chistory[0].T, extent=extent, origin='lower',
-    cmap='jet', vmin=0, vmax=200, alpha=0.6
-)
-
-# Title and labels
-title = ax.set_title("Animation of pollution across Gallatin Valley")
-ax.set_xlabel("Longitude")
-ax.set_ylabel("Latitude")
-
-# Create a colorbar
-colorbar = fig.colorbar(poll_img, ax=ax, label="Concentration (ppb)")
-
-# Update function for animation
-def update(frame):
-    t_day = frame / 24
-    poll_img.set_data(Chistory[frame].T)
-
-    # Interpolate wind info just like in main loop for the title
-    day_idx = min(int(np.floor(t_day)), len(wind_mean) - 2)
-    frac = t_day - int(np.floor(t_day))
-    w_spd = (1 - frac) * wind_mean[day_idx] + frac * wind_mean[day_idx + 1]
-    w_dir = (1 - frac) * wind_dir[day_idx] + frac * wind_dir[day_idx + 1]
-
-    title.set_text(f"Day = {t_day:.1f}, Wind = {w_spd:.2f} mph, {w_dir:.0f}°")
-
-    return [poll_img]
-
-# Only use every plot_freq-th frame
-frame_indices = list(range(n_snapshots))
-#frame_indices = list(range(0, n_snapshots, 10))
-
-
-ani = animation.FuncAnimation(
-    fig, update, frames=frame_indices,
-    interval=50, blit=False, repeat=False
-)
-
-ani.save('C:/Users/travi/OneDrive - Montana State University/College Classes/2026 Semester 6/EMEC 303  CAEIII - Systems Analysis/Projects/Project 2/upscaled_sim_animation2.mp4', fps=30, dpi=100, bitrate = 2000)
-#ani.save('C:/Users/travi/OneDrive - Montana State University/College Classes/2026 Semester 6/EMEC 303  CAEIII - Systems Analysis/Projects/Project 2/upscaled_sim_animation_basefps.mp4', fps=30, dpi=100, bitrate = 2000)
-
-plt.show()
+def animatebase(Chistory):
     
-end = time.perf_counter() # Starting the timer
-time_elapsed = end-start
+    fig, ax = plt.subplots(figsize=(8, 6))
+    
+    # Show static map background
+    img = ax.imshow(map_img, extent=extent, aspect='auto')
+    
+    # Show the pollution overlay
+    poll_img = ax.imshow(
+        Chistory[0].T, extent=extent, origin='lower',
+        cmap='jet', vmin=0, vmax=200, alpha=0.6
+    )
+    
+    # Title and labels
+    title = ax.set_title("Animation of pollution across Gallatin Valley")
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    
+    # Create a colorbar
+    colorbar = fig.colorbar(poll_img, ax=ax, label="Concentration (ppb)")
+    
+    # Update function for animation
+    def update(frame):
+        t_day = frame / 24
+        poll_img.set_data(Chistory[frame].T)
+    
+        # Interpolate wind info just like in main loop for the title
+        day_idx = min(int(np.floor(t_day)), len(wind_mean) - 2)
+        frac = t_day - int(np.floor(t_day))
+        w_spd = (1 - frac) * wind_mean[day_idx] + frac * wind_mean[day_idx + 1]
+        w_dir = (1 - frac) * wind_dir[day_idx] + frac * wind_dir[day_idx + 1]
+    
+        title.set_text(f"Day = {t_day:.1f}, Wind = {w_spd:.2f} mph, {w_dir:.0f}°")
+    
+        return [poll_img]
+    
+    # Only use every plot_freq-th frame
+    frame_indices = list(range(n_snapshots))
+    #frame_indices = list(range(0, n_snapshots, 10))
+    
+    
+    ani = animation.FuncAnimation(
+        fig, update, frames=frame_indices,
+        interval=50, blit=False, repeat=False
+    )
+    
+    ani.save('C:/Users/travi/OneDrive - Montana State University/College Classes/2026 Semester 6/EMEC 303  CAEIII - Systems Analysis/Projects/Project 2/upscaled_sim_animation2.mp4', fps=30, dpi=100, bitrate = 2000)
+    #ani.save('C:/Users/travi/OneDrive - Montana State University/College Classes/2026 Semester 6/EMEC 303  CAEIII - Systems Analysis/Projects/Project 2/upscaled_sim_animation_basefps.mp4', fps=30, dpi=100, bitrate = 2000)
+    
+    plt.show()
+        
+    end = time.perf_counter() # Starting the timer
+    time_elapsed = end-start
+    
+    print(f"the elapsed time is {time_elapsed:0.2f}")
 
-print(f"the elapsed time is {time_elapsed:0.2f}")
-
+    return
 #%% run individual analysis
 from indiv_analysis import travisanalysis, travisanalysis2, haydenanalysis, carsonanalysis
 
 travisanalysis(Chistory, dt, lat, lon, S, plot_freq, x, y, wind_mean, wind_dir, n_snapshots)
 
-#travisanalysis2(Chistory, dt, lat, lon, S, plot_freq, x, y, wind_mean, wind_dir)
+travisanalysis2(Chistory, dt, lat, lon, S, plot_freq, x, y, wind_mean, wind_dir)
 
 #haydenanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays,rescale)
 
-carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale)
+#carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale)
 
 
 
