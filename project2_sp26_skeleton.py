@@ -52,8 +52,8 @@ def latlon2dist(lat1, lon1, lat2, lon2):
 miles_x = latlon2dist(np.mean(lat), lon[0], np.mean(lat), lon[1])
 miles_y = latlon2dist(lat[0], np.mean(lon), lat[1], np.mean(lon)) 
 
-dx = x[1] - x[0]
-dy = y[1] - y[0]
+dx = miles_x / (Nx - 1) #x[1] - x[0]
+dy = miles_y / (Ny - 1) #y[1] - y[0]
 
 #%% Model the emission source
 
@@ -67,6 +67,7 @@ def source(x, y):
 # Compute the source field for the whole map
 
 S = source(X[:,:],Y[:,:])
+Sinterior = source(X[1:-1,1:-1],Y[1:-1,1:-1])
 
 #%% Establish the map and place markers for Bozeman and Belgrade
 
@@ -176,7 +177,7 @@ for n in range(steps):
         yvel = v * (C[1:-1, 1:-1] - C[1:-1, :-2]) / dy  # backward diff
 
     # Update interior
-    Cnew[1:-1, 1:-1] = C[1:-1, 1:-1] + dt*(-xvel -yvel + lap + S)
+    Cnew[1:-1, 1:-1] = C[1:-1, 1:-1] + dt*(-xvel - yvel + lap + Sinterior)
 
     # Apply zero-flux boundary conditions
     Cnew[0, :] = Cnew[1,:]
@@ -186,7 +187,7 @@ for n in range(steps):
 
     # Store previous state (as in your original code) and advance
     Chistory[n] = C.copy()
-    C = C.copy()
+    C = Cnew.copy()
     
     #%% plot an animation of the solution
 fig, ax = plt.subplots(figsize=(8, 6))
@@ -240,9 +241,90 @@ time_elapsed = end-start
 print(f"the elapsed time is {time_elapsed:0.2f}")
 
 
+#%% Check Criteria 1 and 2 for Belgrade, Bozeman, Four Corners, and Bridger (Hayden Analysis)
+
+## Belgrade
+# Criteria 1
+C_Bel = Chistory[:, 13, 10]
+C_Bel_mean = np.mean(C_Bel)
+
+print(f"Average yearly Belgrade NO2 emissions = {C_Bel_mean:0.2f} ppb")
+
+# Criteria 2
+C_Bel_hourly = C_hourly[:, :, 13, 10]
+C_Bel_daily_max = np.max(C_Bel_hourly, axis = 1)
+C_Bel_p98 = np.percentile(C_Bel_daily_max, 98, axis=0)
+
+print(f"Belgrade p98 concentration = {C_Bel_p98:0.2f} ppb")
 
 
+## Bozeman
+# Criteria 1
+C_Boz = Chistory[:, 17, 7]
+C_Boz_mean = np.mean(C_Boz)
 
+print(f"Average yearly Bozeman NO2 emissions = {C_Boz_mean:0.2f} ppb")
+
+# Criteria 2
+C_Boz_hourly = C_hourly[:, :, 17, 7]
+C_Boz_daily_max = np.max(C_Boz_hourly, axis = 1)
+C_Boz_p98 = np.percentile(C_Boz_daily_max, 98, axis=0)
+
+print(f"Bozeman p98 concentration = {C_Boz_p98:0.2f} ppb")
+
+
+## Four Corners
+# Criteria 1
+C_FC = Chistory[:, 13, 7]
+C_FC_mean = np.mean(C_FC)
+
+print(f"Average yearly Four Corners NO2 emissions = {C_FC_mean:0.2f} ppb")
+
+# Criteria 2
+C_FC_hourly = C_hourly[:, :, 13, 7]
+C_FC_daily_max = np.max(C_FC_hourly, axis = 1)
+C_FC_p98 = np.percentile(C_FC_daily_max, 98, axis=0)
+
+print(f"Four Corners p98 concentration = {C_FC_p98:0.2f} ppb")
+
+
+## Bridger
+# Criteria 1
+C_Brid = Chistory[:, 20, 12]
+C_Brid_mean = np.mean(C_Brid)
+
+print(f"Average yearly Bridger NO2 emissions = {C_Brid_mean:0.2f} ppb")
+
+# Criteria 2
+C_Brid_hourly = C_hourly[:, :, 20, 12]
+C_Brid_daily_max = np.max(C_Brid_hourly, axis = 1)
+C_Brid_p98 = np.percentile(C_Brid_daily_max, 98, axis=0)
+
+print(f"Bridger p98 concentration = {C_Brid_p98:0.2f} ppb")
+
+
+# Graph Criteria
+cities = ['Bozeman', 'Belgrade', 'Four Corners', 'Bridger Bowl']
+city_means = [C_Boz_mean, C_Bel_mean, C_FC_mean, C_Brid_mean]
+city_p98 = [C_Boz_p98, C_Bel_p98, C_FC_p98, C_Brid_p98]
+
+plt.figure(3)
+plt.bar(cities, city_means)
+plt.axhline(y = 53, color = 'red', label = 'Limit (53 ppb)')
+plt.xlabel('Areas')
+plt.ylabel('Average NO2 Amount [ppb]')
+plt.title('Average NO2 Amounts in Populated/Popular Areas')
+plt.legend()
+plt.show()
+
+plt.figure(4)
+plt.bar(cities, city_p98)
+plt.axhline(y = 100, color = 'red', label = 'Limit (100 ppb)')
+plt.xlabel('Areas')
+plt.ylabel('98th Percentile Concentrations [ppb]')
+plt.title('1 Hour Daily Maximum NO2 Concentrations in Populated/Popular Areas')
+plt.legend()
+plt.show()
 
 
 
