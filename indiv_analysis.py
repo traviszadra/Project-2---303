@@ -551,7 +551,7 @@ def carsonanalysis(Chistory, steps, steps_per_day, Nx, Ny, Ndays, rescale):
     
     C_daily_new = Chistory[:steps].reshape(Ndays, steps_per_day, Nx, Ny) # all timesteps throughout the day
     C_daily_new = C_daily_new.copy() 
-    shutdown = [13, 19, 34, 40, 41, 349, 355, 356, 362, 363] #[40, 129, 269, 270, 316, 317, 349, 355, 356, 363]
+    shutdown = [40, 129, 269, 270, 316, 317, 349, 355, 356, 363]
     C_daily_new[shutdown, :, :, :] = 0
     C_daily_new[80:346, :, xbrid, ybrid] = 0
     
