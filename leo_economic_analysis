@@ -1,0 +1,123 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr 27 09:04:03 2026
+
+@author: Leoooo
+"""
+
+import numpy as np 
+import matplotlib as plt
+
+#%% givens
+
+direct_jobs = 1200
+indirect_jobs = 4000
+
+# bozeman info (data from 2025/2024 - most recent available)
+bozeman_pop = 61662          # https://weblink.bozeman.net/WebLink/DocView.aspx?id=313330&dbid=0&repo=BOZEMAN&searchid=bde67117-99a5-4b98-9db0-a596bcfd1678
+gallatin_co_pop = 135227
+bozeman_growth = 1681        # per year on average since 2010, slowing though
+gallatin_co_manu_jobs = 3579 # 31 jobs lost in 2024
+gallatin_co_tech_jobs = 843  # "professional and technical services"
+prof_avg_wage = 119113       # pro and tech services as above ^ 9.6% increase from 2023 
+
+# Bozeman workforce (age 25+) education stats
+
+no_highschool = 0.03         # "high school or less, no diploma"
+highschool = 0.132           
+some_college = 0.138
+associate_degree = 0.063
+bachelors_degree = 0.386
+graduate_degree = 0.251
+
+# national givens from https://www.semiconductors.org/chipping-in-sia-jobs-report/
+ndj = 277000 #national direct jobs
+nidj = 669498
+n_inducedj = 905551
+
+ndi = 47.1 *10**9 # national direct income
+nii = 61.9 * 10**9
+n_inducedi = 51.8 * 10**9
+
+# national ratios
+
+n_indirect_to_direct_jobs = nidj / ndj                # 2.4169
+n_induced_to_direct_jobs = n_inducedj / ndj           # 3.269
+
+n_indirect_to_direct_income = nii / ndi               # 1.314
+n_induced_to_direct_income = n_inducedi / nii         # 0.8368
+
+direct_income_to_jobs = ndi / ndj # income per job    $170,036!!!
+indirect_income_to_jobs = nii / nidj                  # $92,457
+induced_income_to_jobs = n_inducedi / n_inducedj      # $57,202
+
+print("Avg incomes per job:")
+print(f"direct: ${direct_income_to_jobs:.2f}")
+print(f"indirect: ${indirect_income_to_jobs:.2f}")
+print(f"induced: ${induced_income_to_jobs:.2f}\n")
+
+# local ratio
+l_indirect_to_direct_jobs = indirect_jobs/direct_jobs # 3.33
+
+#%% local calculations based on national ratios
+
+induced_jobs = direct_jobs * n_induced_to_direct_jobs
+
+print(f'induced jobs: {induced_jobs:.0f}\n')
+
+direct_income = direct_jobs * direct_income_to_jobs
+indirect_income = indirect_jobs * indirect_income_to_jobs
+induced_income = induced_jobs * induced_income_to_jobs
+
+print(f"direct income: ${direct_income:.2f}")         # $204,043,321.30
+print(f"indirect income: ${indirect_income:.2f}")     # $369,829,334.82
+print(f"induced income: ${induced_income:.2f}\n")     # $20,997,372.16
+
+total_income = direct_income + indirect_income + induced_income
+total_jobs = direct_jobs+indirect_jobs+induced_jobs
+
+print(f"total income: ${total_income:.2f}")           # 798,276,988.24
+print(f"total jobs: {total_jobs:.0f}")                # 9123
+
+
+''' todo:
+     figure out job layout for degrees - percent of jobs semiconductor brings that are blue vs white collar
+     note induced jobs current data for galltin county:
+         determine which markets count (hospitality, retail, etc)
+         compare to incoming induced jobs and salaries
+     graph data:
+         compare incoming jobs to current jobs
+         compare incoming salaries to current salaries
+         compare totals     
+         
+         
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
